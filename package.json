@@ -1,0 +1,18 @@
+{
+  "name": "it61_affiche_bot",
+  "version": "1.0.0",
+  "description": "IT61 Affice telegram bot",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "common-tags": "^1.8.0",
+    "dotenv": "^8.2.0",
+    "rss-parser": "^3.9.0",
+    "striptags": "^3.1.1",
+    "telegraf": "^3.38.0"
+  }
+}
