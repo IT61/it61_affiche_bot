@@ -23,7 +23,7 @@ async function startWatchFeed(ctx) {
         break;
       }
 
-      ctx.replyWithHTML(buildMessage(item));
+      ctx.telegram.sendMessage(process.env.CHAT_ID, buildMessage(item), {parse_mode: 'HTML'});
     }
   } catch (e) {
     console.error(e);
