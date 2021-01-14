@@ -9,6 +9,9 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 bot.start(startWatchFeed);
 bot.launch();
 
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
+
 /**
  * Watches the RSS feed and sends Telegram message for each item.
  * 
@@ -17,20 +20,37 @@ bot.launch();
 async function startWatchFeed(ctx) {
   try {
     const feed = await new Parser().parseURL(process.env.FEED_URL);
-
-    for (const item of feed.items) {
-      if (new Date(item.pubDate) < dateSinceLastUpdate()) {
-        break;
-      }
-
-      ctx.telegram.sendMessage(process.env.CHAT_ID, buildMessage(item), {parse_mode: 'HTML'});
-    }
+    const itemsToPublish = getItemsToPublish(feed.items);
+    
+    itemsToPublish.forEach((item) =>
+      ctx.telegram.sendMessage(process.env.CHAT_ID, buildMessage(item), {
+        parse_mode: 'HTML',
+      })
+    );
   } catch (e) {
     console.error(e);
     ctx.reply('Не удалось загрузить ленту');
   }
 
   setTimeout(startWatchFeed, process.env.UPDATE_PERIOD_MILLISECONDS, ctx);
+}
+
+/**
+ * Returns filtered items to publish by pubDate and update period
+ * 
+ * @param {array} items RSS feed items 
+ * @param {array} itemsToPublish filtered items to publish
+ * 
+ * @returns {array} items
+ */
+function getItemsToPublish([firstItem, ...items], itemsToPublish = []) {
+  const isBreak = new Date(firstItem.pubDate) < dateSinceLastUpdate();
+  
+  if (isBreak) {
+    return itemsToPublish;
+  } else {
+    return getItemsToPublish(items, [firstItem, ...itemsToPublish]);
+  }
 }
 
 /**
